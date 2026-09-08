@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mima</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: #0d1520;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ======================================== */
+        /* PANTALLA PRINCIPAL (FOTOS + BOTÓN)       */
+        /* ======================================== */
+        #pantalla-fotos {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            background: radial-gradient(ellipse at center, #1a1a0a, #0a0a0a);
+            transition: opacity 1.2s ease, transform 1.2s ease;
+            padding: 20px;
+        }
+
+        #pantalla-fotos.oculta {
+            opacity: 0;
+            transform: scale(1.05);
+            pointer-events: none;
+        }
+
+        #pantalla-fotos h1 {
+            color: #ffd700;
+            font-size: 3rem;
+            margin-bottom: 5px;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            animation: latido 2s infinite;
+        }
+
+        #pantalla-fotos p {
+            color: #b89400;
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            letter-spacing: 3px;
+        }
+
+        @keyframes latido {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        /* === ÁLBUM DE FOTOS === */
+        #album-principal {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            background: rgba(255, 215, 0, 0.04);
+            backdrop-filter: blur(10px);
+            padding: 30px 40px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 215, 0, 0.15);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            max-width: 90%;
+            margin-bottom: 35px;
+        }
+
+        .foto-principal {
+            width: 140px;
+            height: 180px;
+            border-radius: 25px;
+            overflow: hidden;
+            border: 3px solid #ffd700;
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.2);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            background: #1a1a0a;
+        }
+
+        .foto-principal:hover {
+            transform: scale(1.08) rotate(-2deg);
+            border-color: #ffed4a;
+            box-shadow: 0 15px 50px rgba(255, 215, 0, 0.4);
+        }
+
+        .foto-principal img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* === BOTÓN === */
+        .btn-sorpresa {
+            padding: 18px 55px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #1a1a0a;
+            background: linear-gradient(135deg, #ffd700, #fbbf24, #f59e0b);
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.4);
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
+            animation: brillo 2s infinite;
+        }
+
+        .btn-sorpresa::after {
+            content: ' 🌻';
+        }
+
+        .btn-sorpresa:hover {
+            transform: scale(1.06);
+            box-shadow: 0 15px 60px rgba(255, 215, 0, 0.6);
+        }
+
+        .btn-sorpresa:active {
+            transform: scale(0.95);
+        }
+
+        @keyframes brillo {
+            0%, 100% { box-shadow: 0 10px 40px rgba(255, 215, 0, 0.4); }
+            50% { box-shadow: 0 10px 60px rgba(255, 215, 0, 0.7); }
+        }
+
+        /* ======================================== */
+        /* CONTENEDOR DE LA FLOR                    */
+        /* ======================================== */
+        #flor-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.5s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0d1520;
+        }
+
+        #flor-container.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Texto sobre la flor */
+        .texto-flor {
+            position: absolute;
+            top: 5%;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            z-index: 70;
+            color: white;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            pointer-events: none;
+        }
+
+        .texto-flor h1 {
+            font-size: 3.5rem;
+            background: linear-gradient(45deg, #ffd700, #fbbf24, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+            letter-spacing: 4px;
+        }
+
+        .texto-flor p {
+            font-size: 1.5rem;
+            color: #fcd34d;
+            -webkit-text-fill-color: #fcd34d;
+            letter-spacing: 3px;
+            margin-top: 5px;
+        }
+
+        /* ======================================== */
+        /* BOTÓN "LEER NOTA" EN ESQUINA            */
+        /* ======================================== */
+        #btn-nota {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 200;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #ffd700, #fbbf24);
+            border: none;
+            border-radius: 30px;
+            color: #1a1a0a;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.3);
+            transition: all 0.4s ease;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-20px);
+            letter-spacing: 1px;
+        }
+
+        #btn-nota.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        #btn-nota:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 12px 40px rgba(255, 215, 0, 0.5);
+        }
+
+        #btn-nota:active {
+            transform: scale(0.95);
+        }
+
+        /* ======================================== */
+        /* MODAL DE LA NOTA                        */
+        /* ======================================== */
+        #modal-nota {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 300;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+        }
+
+        #modal-nota.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .contenido-nota {
+            background: linear-gradient(145deg, #1a1a0a, #2a2a0a);
+            padding: 50px 60px;
+            border-radius: 40px;
+            max-width: 600px;
+            width: 90%;
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.05);
+            transform: scale(0.9);
+            transition: transform 0.5s ease;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        #modal-nota.visible .contenido-nota {
+            transform: scale(1);
+        }
+
+        .contenido-nota h2 {
+            color: #ffd700;
+            font-size: 2.2rem;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+        }
+
+        .contenido-nota .mensaje {
+            color: #f5e6c8;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            text-align: center;
+            font-family: 'Georgia', serif;
+            white-space: pre-line;
+        }
+
+        .contenido-nota .mensaje .emoji {
+            font-size: 1.5rem;
+        }
+
+        .cerrar-nota {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #ffd700;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            opacity: 0.6;
+        }
+
+        .cerrar-nota:hover {
+            transform: rotate(90deg);
+            opacity: 1;
+        }
+
+        /* ======================================== */
+        /* CANVAS DE LA FLOR                       */
+        /* ======================================== */
+        #lienzo {
+            display: none;
+            width: 600px;
+            height: 600px;
+            max-width: 90vw;
+            max-height: 80vh;
+            aspect-ratio: 1/1;
+            border-radius: 50px;
+            background: radial-gradient(ellipse at 30% 30%, #1a3a4a, #0a1a22);
+            box-shadow: inset 0 0 80px rgba(0,0,0,0.5), 0 20px 60px rgba(0,0,0,0.8);
+            cursor: pointer;
+        }
+
+        /* ======================================== */
+        /* CORAZONES FLOTANDO                       */
+        /* ======================================== */
+        .corazon {
+            position: fixed;
+            font-size: 1.8rem;
+            pointer-events: none;
+            z-index: 200;
+            animation: subir 5s ease-in forwards;
+        }
+
+        @keyframes subir {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-700px) scale(0.3); opacity: 0; }
+        }
+
+        /* ======================================== */
+        /* BOTÓN VOLVER                            */
+        /* ======================================== */
+        #btn-reiniciar {
+            position: fixed;
+            bottom: 3%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 200;
+            padding: 12px 35px;
+            background: rgba(255, 215, 0, 0.06);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 215, 0, 0.15);
+            border-radius: 30px;
+            color: rgba(255, 215, 0, 0.5);
+            cursor: pointer;
+            font-size: 1rem;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            letter-spacing: 1px;
+        }
+
+        #btn-reiniciar.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #btn-reiniciar:hover {
+            background: rgba(255, 215, 0, 0.15);
+            color: #ffd700;
+            border-color: #ffd700;
+        }
+
+        /* ======================================== */
+        /* RESPONSIVE                               */
+        /* ======================================== */
+        @media (max-width: 700px) {
+            #pantalla-fotos h1 { font-size: 2rem; }
+            #pantalla-fotos p { font-size: 1rem; }
+            .btn-sorpresa { padding: 14px 30px; font-size: 1.3rem; }
+            .foto-principal { width: 90px; height: 120px; }
+            #album-principal { padding: 18px 15px; gap: 15px; }
+            .texto-flor h1 { font-size: 2.2rem; }
+            .texto-flor p { font-size: 1.1rem; }
+            #btn-reiniciar { padding: 10px 25px; font-size: 0.8rem; bottom: 2%; }
+            #lienzo { max-width: 95vw; max-height: 70vh; }
+            #btn-nota { padding: 10px 18px; font-size: 0.9rem; top: 10px; right: 10px; }
+            .contenido-nota { padding: 30px 25px; }
+            .contenido-nota h2 { font-size: 1.6rem; }
+            .contenido-nota .mensaje { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================ -->
+    <!-- PANTALLA PRINCIPAL (FOTOS + BOTÓN)           -->
+    <!-- ============================================ -->
+    <div id="pantalla-fotos">
+        <h1>Feliz cumpleaños</h1>
+        <p>✨Hacerme tu amiga fue de lo mejor de la universidad✨</p>
+
+        <div id="album-principal">
+            <div class="foto-principal">
+                <img src="fot6.jpg" alt="Foto 1">
+            </div>
+            <div class="foto-principal">
+                <img src="fot2.jpg" alt="Foto 2">
+            </div>
+            <div class="foto-principal">
+                <img src="fot3.jpg" alt="Foto 3">
+            </div>
+            <div class="foto-principal">
+                <img src="fot4.jpg" alt="Foto 4">
+            </div>
+            <div class="foto-principal">
+                <img src="fot5.jpg" alt="Foto 5">
+            </div>
+        </div>
+
+        <button class="btn-sorpresa" id="boton-sorpresa">¡Toca aqui!</button>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- CONTENEDOR DE LA FLOR                        -->
+    <!-- ============================================ -->
+    <div id="flor-container">
+        <div class="texto-flor">
+            <h1>Aqui tienes tu florecita amarilla</h1>
+            <p> 💛</p>
+        </div>
+
+        <canvas id="lienzo" width="600" height="600"></canvas>
+
+        <!-- BOTÓN LEER NOTA EN ESQUINA -->
+        <button id="btn-nota">📖 Leer nota</button>
+
+        <!-- BOTÓN VOLVER -->
+        <button id="btn-reiniciar">🔄 Volver a las fotos</button>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- MODAL DE LA NOTA                            -->
+    <!-- ============================================ -->
+    <div id="modal-nota">
+        <div class="contenido-nota">
+            <button class="cerrar-nota" id="cerrar-nota">✕</button>
+            <h2>💛 De mima para mima 💛</h2>
+            <div class="mensaje">
+                <!-- ✏️ ESCRIBE AQUÍ TU MENSAJE PERSONAL -->
+
+                Hoy cumples 21 años en Cuba, veras que 
+                antes de los 25 lo cumpliras en otro pais.
+                Seras una chica prospera y empoderada.
+                Guarda esto y en unos años cuando lo vuelvas a leer
+                veras lo que te digo. Le doy gracias a la vida porque 
+                hayamos coincidido el mismo dia de inscripcion de la universidad,
+                y que por eso nos hayamos sentado juntas el primer dia de clases,
+                creo que despues de ahi no nos separamos mas (Una diva reconoce a otra diva).
+                 Hemos vivido tanto juntas mima, que creo que la universidad no habria 
+                 sido igual sin ti. Gracias por todo.
+                Creeme que nunca olvidare la pena que pasamos con el amiguito de Migue jajajaj
+                (no podia dejar de mencionarlo). Y todos nuestros nombres en codigo, Shein, Sharon, el guapo, el lindo, o como olvidar el dia de nuestro gran robo , un platano jajajajajajaj, mimaaaaa y nuestros madrugones para estudiar xd, ya despues que nos corrompimos, eran madrugones para coger puestos para lo que tu sabes , nuestras salidas a santa clara que nos dejaban sin un peso o cuando ibamos a hacer ojo al gym, en fin muchas cosas q no terminaria.  Te quiero mucho mima y ojala poder cumplir nuestros
+                sueños, de viajar por el mundo , ir a conciertos, a Paris , de poder vivir como queremos
+                Feliz Cumpleaños ✨
+                <!-- ✏️ FIN DEL MENSAJE -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURACIÓN DEL CANVAS
+        // ============================================
+        const canvas = document.getElementById('lienzo');
+        const ctx = canvas.getContext('2d');
+
+        // ============================================
+        // VARIABLES DE ANIMACIÓN DE LA FLOR
+        // ============================================
+        let inicio = null;
+        const DURACION = 6000;
+        let florCompleta = false;
+        let animacionActiva = false;
+
+        // ============================================
+        // FUNCIONES DE DIBUJO DE LA FLOR
+        // ============================================
+
+        function dibujarPetalo(x, y, radio, angulo, factor, colorBase, colorBrillo) {
+            const ancho = radio * 0.45 * factor;
+            const alto = radio * 0.9 * factor;
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angulo);
+
+            ctx.shadowColor = 'rgba(200, 150, 40, 0.4)';
+            ctx.shadowBlur = 25 * factor;
+
+            ctx.beginPath();
+            ctx.moveTo(0, -alto);
+            ctx.bezierCurveTo(
+                ancho * 0.7, -alto * 0.6,
+                ancho * 1.2, -alto * 0.2,
+                ancho * 0.8, 0
+            );
+            ctx.bezierCurveTo(
+                ancho * 1.2, alto * 0.2,
+                ancho * 0.7, alto * 0.6,
+                0, alto * 0.7
+            );
+            ctx.bezierCurveTo(
+                -ancho * 0.7, alto * 0.6,
+                -ancho * 1.2, alto * 0.2,
+                -ancho * 0.8, 0
+            );
+            ctx.bezierCurveTo(
+                -ancho * 1.2, -alto * 0.2,
+                -ancho * 0.7, -alto * 0.6,
+                0, -alto
+            );
+            ctx.closePath();
+
+            const grad = ctx.createRadialGradient(0, -alto * 0.3, 0, 0, 0, alto);
+            grad.addColorStop(0, colorBrillo);
+            grad.addColorStop(0.3, colorBase);
+            grad.addColorStop(0.7, colorBase);
+            grad.addColorStop(1, '#a07820');
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.moveTo(0, -alto * 0.6);
+            ctx.quadraticCurveTo(ancho * 0.2, -alto * 0.2, 0, 0);
+            ctx.quadraticCurveTo(-ancho * 0.2, alto * 0.2, 0, alto * 0.5);
+            ctx.strokeStyle = 'rgba(255, 255, 200, 0.25)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(0, -alto * 0.3);
+            ctx.quadraticCurveTo(-ancho * 0.3, 0, -ancho * 0.2, alto * 0.3);
+            ctx.strokeStyle = 'rgba(255, 255, 200, 0.15)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(0, -alto * 0.3);
+            ctx.quadraticCurveTo(ancho * 0.3, 0, ancho * 0.2, alto * 0.3);
+            ctx.strokeStyle = 'rgba(255, 255, 200, 0.15)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function dibujarTallo() {
+            ctx.save();
+
+            ctx.shadowColor = 'rgba(20, 60, 30, 0.4)';
+            ctx.shadowBlur = 20;
+
+            ctx.beginPath();
+            ctx.moveTo(300, 580);
+            ctx.quadraticCurveTo(310, 480, 300, 340);
+            ctx.strokeStyle = '#2d7a3a';
+            ctx.lineWidth = 16;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.moveTo(304, 570);
+            ctx.quadraticCurveTo(314, 470, 304, 350);
+            ctx.strokeStyle = 'rgba(80, 200, 100, 0.2)';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            for (let i = 0; i < 8; i++) {
+                const y = 400 + i * 20;
+                ctx.beginPath();
+                ctx.moveTo(295 + Math.sin(i * 0.5) * 5, y);
+                ctx.lineTo(305 + Math.sin(i * 0.5 + 0.5) * 5, y + 8);
+                ctx.strokeStyle = 'rgba(20, 80, 30, 0.3)';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+
+            ctx.shadowColor = 'rgba(20, 60, 30, 0.4)';
+            ctx.shadowBlur = 15;
+
+            ctx.beginPath();
+            ctx.moveTo(290, 480);
+            ctx.quadraticCurveTo(240, 460, 220, 490);
+            ctx.quadraticCurveTo(250, 500, 290, 490);
+            ctx.closePath();
+
+            const gradHoja = ctx.createLinearGradient(260, 470, 280, 500);
+            gradHoja.addColorStop(0, '#4aad5a');
+            gradHoja.addColorStop(0.5, '#2d7a3a');
+            gradHoja.addColorStop(1, '#1a4f25');
+            ctx.fillStyle = gradHoja;
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.moveTo(290, 485);
+            ctx.quadraticCurveTo(255, 478, 230, 492);
+            ctx.strokeStyle = 'rgba(100, 220, 120, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.moveTo(310, 440);
+            ctx.quadraticCurveTo(350, 420, 370, 450);
+            ctx.quadraticCurveTo(340, 460, 310, 450);
+            ctx.closePath();
+
+            const gradHoja2 = ctx.createLinearGradient(330, 430, 350, 460);
+            gradHoja2.addColorStop(0, '#4aad5a');
+            gradHoja2.addColorStop(0.5, '#2d7a3a');
+            gradHoja2.addColorStop(1, '#1a4f25');
+            ctx.fillStyle = gradHoja2;
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.moveTo(310, 445);
+            ctx.quadraticCurveTo(345, 438, 365, 452);
+            ctx.strokeStyle = 'rgba(100, 220, 120, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function dibujarCentro(x, y, radio, factor) {
+            ctx.save();
+
+            const r = radio * factor;
+
+            ctx.shadowColor = 'rgba(180, 130, 30, 0.6)';
+            ctx.shadowBlur = 40 * factor;
+
+            const grad = ctx.createRadialGradient(x - 5, y - 5, 5, x, y, r);
+            grad.addColorStop(0, '#ffe888');
+            grad.addColorStop(0.2, '#f0c840');
+            grad.addColorStop(0.5, '#d4a020');
+            grad.addColorStop(0.8, '#b8860b');
+            grad.addColorStop(1, '#6a4a10');
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.arc(x, y, r * 0.85, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 200, 80, 0.2)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            const numSemillas = 45;
+            for (let i = 0; i < numSemillas; i++) {
+                const t = i / numSemillas;
+                const angulo = t * Math.PI * 6;
+                const distancia = r * (0.15 + t * 0.7);
+                const sx = x + Math.cos(angulo) * distancia;
+                const sy = y + Math.sin(angulo) * distancia;
+
+                const size = 2 + (1 - t) * 2;
+                ctx.beginPath();
+                ctx.arc(sx, sy, size, 0, Math.PI * 2);
+                ctx.fillStyle = i % 3 === 0 ? '#f0c840' : '#8a6a20';
+                ctx.fill();
+
+                if (i % 3 === 0) {
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = '#ffe888';
+                    ctx.beginPath();
+                    ctx.arc(sx - 0.5, sy - 0.5, size * 0.3, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255, 255, 200, 0.4)';
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+
+            ctx.shadowBlur = 40;
+            ctx.shadowColor = '#ffe888';
+            ctx.beginPath();
+            ctx.arc(x - 8, y - 10, r * 0.15, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 200, 0.3)';
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function dibujarFlor(progreso) {
+            const W = canvas.width;
+            const H = canvas.height;
+            ctx.clearRect(0, 0, W, H);
+
+            const gradBg = ctx.createRadialGradient(180, 180, 0, 300, 300, 420);
+            gradBg.addColorStop(0, '#1a3a4a');
+            gradBg.addColorStop(1, '#0a1a22');
+            ctx.fillStyle = gradBg;
+            ctx.fillRect(0, 0, W, H);
+
+            dibujarTallo();
+
+            const numPetals = 16;
+            const radioBase = 140;
+            const radioActual = radioBase * Math.min(1, progreso * 1.1);
+            const centroX = 300;
+            const centroY = 280;
+
+            for (let i = 0; i < numPetals; i++) {
+                const retraso = (i / numPetals) * 0.35;
+                let f = Math.min(1, (progreso - retraso) * 2.5);
+                if (f <= 0) continue;
+
+                const angulo = (i / numPetals) * Math.PI * 2 - Math.PI / 2;
+                const distancia = 30 * f;
+                const x = centroX + Math.cos(angulo) * distancia;
+                const y = centroY + Math.sin(angulo) * distancia;
+
+                dibujarPetalo(
+                    x, y,
+                    radioActual * (0.7 + 0.1 * f),
+                    angulo,
+                    f,
+                    '#f5c842',
+                    '#fde68a'
+                );
+            }
+
+            for (let i = 0; i < numPetals; i++) {
+                const retraso = 0.2 + (i / numPetals) * 0.35;
+                let f = Math.min(1, (progreso - retraso) * 2.5);
+                if (f <= 0) continue;
+
+                const angulo = (i / numPetals) * Math.PI * 2 + Math.PI / 16;
+                const distancia = 38 * f;
+                const x = centroX + Math.cos(angulo) * distancia;
+                const y = centroY + Math.sin(angulo) * distancia;
+
+                dibujarPetalo(
+                    x, y,
+                    radioActual * (0.6 + 0.2 * f),
+                    angulo,
+                    f,
+                    '#f7d44a',
+                    '#fff0a8'
+                );
+            }
+
+            const centroFactor = Math.min(1, progreso * 1.2);
+            dibujarCentro(centroX, centroY, 50, centroFactor);
+
+            if (progreso > 0.9) {
+                const brilloIntensidad = (progreso - 0.9) / 0.1;
+                ctx.save();
+                ctx.globalAlpha = brilloIntensidad * 0.15;
+                for (let i = 0; i < 24; i++) {
+                    const ang = (i / 24) * Math.PI * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(centroX, centroY);
+                    ctx.lineTo(
+                        centroX + Math.cos(ang) * 220,
+                        centroY + Math.sin(ang) * 220
+                    );
+                    ctx.strokeStyle = '#ffeb99';
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 40;
+                    ctx.shadowColor = '#f7d44a';
+                    ctx.stroke();
+                }
+                ctx.restore();
+
+                for (let i = 0; i < 25; i++) {
+                    const ang = Math.random() * Math.PI * 2;
+                    const dist = 100 + Math.random() * 150;
+                    const x = centroX + Math.cos(ang + Date.now() / 2000) * dist;
+                    const y = centroY + Math.sin(ang + Date.now() / 1500) * dist * 0.6;
+                    ctx.save();
+                    ctx.globalAlpha = brilloIntensidad * Math.random() * 0.3;
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = '#ffdd77';
+                    ctx.beginPath();
+                    ctx.arc(x, y, Math.random() * 3 + 1, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffe88a';
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+        }
+
+        // ============================================
+        // ANIMACIÓN DE LA FLOR
+        // ============================================
+        function animarFlor(timestamp) {
+            if (!inicio) inicio = timestamp;
+            const elapsed = timestamp - inicio;
+            let progreso = Math.min(1, elapsed / DURACION);
+
+            const ease = 1 - Math.pow(1 - progreso, 2.2);
+            dibujarFlor(ease);
+
+            if (progreso < 1) {
+                requestAnimationFrame(animarFlor);
+            } else {
+                florCompleta = true;
+                animacionActiva = false;
+                dibujarFlor(1);
+            }
+        }
+
+        function iniciarFlor() {
+            if (animacionActiva) return;
+            florCompleta = false;
+            animacionActiva = true;
+            inicio = null;
+            requestAnimationFrame(animarFlor);
+        }
+
+        // ============================================
+        // REINICIAR FLOR (CLICK EN CANVAS)
+        // ============================================
+        canvas.addEventListener('click', function() {
+            if (florCompleta) {
+                iniciarFlor();
+            }
+        });
+
+        // ============================================
+        // CONTROL DE PANTALLAS
+        // ============================================
+        const pantallaFotos = document.getElementById('pantalla-fotos');
+        const florContainer = document.getElementById('flor-container');
+        const boton = document.getElementById('boton-sorpresa');
+        const btnReiniciar = document.getElementById('btn-reiniciar');
+        const btnNota = document.getElementById('btn-nota');
+        const modalNota = document.getElementById('modal-nota');
+        const cerrarNota = document.getElementById('cerrar-nota');
+
+        function mostrarFlor() {
+            pantallaFotos.classList.add('oculta');
+            florContainer.classList.add('visible');
+            btnReiniciar.classList.add('visible');
+            
+            setTimeout(() => {
+                btnNota.classList.add('visible');
+            }, 800);
+            
+            lanzarCorazones();
+
+            const canvas2 = document.getElementById('lienzo');
+            canvas2.style.display = 'block';
+
+            setTimeout(() => {
+                iniciarFlor();
+            }, 300);
+        }
+
+        function reiniciar() {
+            pantallaFotos.classList.remove('oculta');
+            florContainer.classList.remove('visible');
+            btnReiniciar.classList.remove('visible');
+            btnNota.classList.remove('visible');
+            document.getElementById('lienzo').style.display = 'none';
+            florCompleta = false;
+            animacionActiva = false;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function abrirNota() {
+            modalNota.classList.add('visible');
+        }
+
+        function cerrarNotaFunc() {
+            modalNota.classList.remove('visible');
+        }
+
+        boton.addEventListener('click', mostrarFlor);
+        btnReiniciar.addEventListener('click', reiniciar);
+        btnNota.addEventListener('click', abrirNota);
+        cerrarNota.addEventListener('click', cerrarNotaFunc);
+
+        // Cerrar nota al hacer clic fuera del contenido
+        modalNota.addEventListener('click', function(e) {
+            if (e.target === modalNota) {
+                cerrarNotaFunc();
+            }
+        });
+
+        // Ocultar canvas al inicio
+        document.getElementById('lienzo').style.display = 'none';
+
+        // ============================================
+        // CORAZONES FLOTANTES
+        // ============================================
+        function lanzarCorazones() {
+            const emojis = ['💛', '🌻', '✨', '💫', '🌟', '💕', '🌸'];
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const corazon = document.createElement('div');
+                    corazon.className = 'corazon';
+                    corazon.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    corazon.style.left = Math.random() * 90 + 5 + '%';
+                    corazon.style.top = Math.random() * 40 + 60 + '%';
+                    corazon.style.fontSize = (1.2 + Math.random() * 2) + 'rem';
+                    corazon.style.animationDuration = (4 + Math.random() * 3) + 's';
+                    document.body.appendChild(corazon);
+                    setTimeout(() => corazon.remove(), 7000);
+                }, i * 120);
+            }
+        }
+
+        console.log('🌻 ¡Feliz cumpleaños, amiga! 💛');
+    </script>
+</body>
+</html>
